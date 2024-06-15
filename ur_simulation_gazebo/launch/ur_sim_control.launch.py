@@ -41,7 +41,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-
+import launch_ros.parameter_descriptions
 
 def launch_setup(context, *args, **kwargs):
 
@@ -101,7 +101,11 @@ def launch_setup(context, *args, **kwargs):
             initial_joint_controllers,
         ]
     )
-    robot_description = {"robot_description": robot_description_content}
+    robot_description = {
+        "robot_description": launch_ros.parameter_descriptions.ParameterValue(
+            robot_description_content, value_type=str
+        )
+    }
 
     robot_state_publisher_node = Node(
         package="robot_state_publisher",
@@ -147,6 +151,41 @@ def launch_setup(context, *args, **kwargs):
         arguments=[initial_joint_controller, "-c", "/controller_manager", "--stopped"],
         condition=UnlessCondition(start_joint_controller),
     )
+    
+    # === ROBOTIQ 2f-85 CONTROLLER === #
+    robotiq_controller_spawner_LKJ = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["robotiq_controller_LKJ", "-c", "/controller_manager"],
+    )
+    robotiq_controller_spawner_RKJ = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["robotiq_controller_RKJ", "-c", "/controller_manager"],
+    )
+    robotiq_controller_spawner_LIKJ = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["robotiq_controller_LIKJ", "-c", "/controller_manager"],
+    )
+    robotiq_controller_spawner_RIKJ = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["robotiq_controller_RIKJ", "-c", "/controller_manager"],
+    )
+    robotiq_controller_spawner_LFTJ = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["robotiq_controller_LFTJ", "-c", "/controller_manager"],
+    )
+    robotiq_controller_spawner_RFTJ = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["robotiq_controller_RFTJ", "-c", "/controller_manager"],
+    )
+
+    # ========== END-EFFECTORS ========== #
+    # ========== END-EFFECTORS ========== #
 
     # Gazebo nodes
     gazebo = IncludeLaunchDescription(
@@ -173,6 +212,19 @@ def launch_setup(context, *args, **kwargs):
         delay_rviz_after_joint_state_broadcaster_spawner,
         initial_joint_controller_spawner_stopped,
         initial_joint_controller_spawner_started,
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action = initial_joint_controller_spawner_started,
+                on_exit = [
+                    robotiq_controller_spawner_LKJ,
+                    robotiq_controller_spawner_RKJ,
+                    robotiq_controller_spawner_LIKJ,
+                    robotiq_controller_spawner_RIKJ,
+                    robotiq_controller_spawner_LFTJ,
+                    robotiq_controller_spawner_RFTJ,
+                ]
+            )
+        ),
         gazebo,
         gazebo_spawn_robot,
     ]
