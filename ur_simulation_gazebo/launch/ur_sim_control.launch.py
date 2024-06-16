@@ -188,21 +188,42 @@ def launch_setup(context, *args, **kwargs):
     # ========== END-EFFECTORS ========== #
 
     # Gazebo nodes
-    gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [FindPackageShare("gazebo_ros"), "/launch", "/gazebo.launch.py"]
-        ),
-        launch_arguments={
-            "gui": gazebo_gui,
-        }.items(),
+    # gazebo = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         [FindPackageShare("gazebo_ros"), "/launch", "/gazebo.launch.py"]
+    #     ),
+    #     launch_arguments={
+    #         "gui": gazebo_gui,
+    #     }.items(),
+    # )
+    
+    # ***** GAZEBO ***** #   
+    # DECLARE Gazebo WORLD file:
+    conveyorbelt_gazebo = PathJoinSubstitution(
+        [FindPackageShare('conveyorbelt_gazebo'), "worlds", "conveyorbelt.world"]
     )
+    
+    # os.path.join(
+    #     get_package_share_directory('conveyorbelt_gazebo'),
+    #     'worlds',
+    #     'conveyorbelt.world')
+    # DECLARE Gazebo LAUNCH file:
+    gazebo = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    [FindPackageShare("gazebo_ros"), "/launch", "/gazebo.launch.py"]
+                    ),
+                launch_arguments={
+                    "gui": gazebo_gui, 
+                    'world': conveyorbelt_gazebo
+                    }.items(),
+             )
 
     # Spawn robot
     gazebo_spawn_robot = Node(
         package="gazebo_ros",
         executable="spawn_entity.py",
         name="spawn_ur",
-        arguments=["-entity", "ur", "-topic", "robot_description"],
+        arguments=["-entity", "ur", "-topic", "robot_description", "-x", "-0.8", "-z", "0.6"],
         output="screen",
     )
 
