@@ -226,6 +226,18 @@ def launch_setup(context, *args, **kwargs):
         arguments=["-entity", "ur", "-topic", "robot_description", "-x", "-0.8", "-z", "0.6"],
         output="screen",
     )
+    
+    #spawn bin
+    bin_path = PathJoinSubstitution(
+        [FindPackageShare('ur_description'), "urdf", "bin.urdf"]
+    )
+    gazebo_spawn_bin = Node(
+        package="gazebo_ros",
+        executable="spawn_entity.py",
+        name="spawn_ur",
+        arguments=["-entity", "bin", "-file", bin_path, "-x", "-0.8", "-y", "-0.8","-z", "0.05"],
+        output="screen",
+    )
 
     nodes_to_start = [
         robot_state_publisher_node,
@@ -248,6 +260,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         gazebo,
         gazebo_spawn_robot,
+        gazebo_spawn_bin,
     ]
 
     return nodes_to_start
